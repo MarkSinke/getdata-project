@@ -21,18 +21,23 @@ features <- tbl_df(read.table(file = "data/UCI HAR Dataset/features.txt",
 features <- mutate(features, feature = gsub("[()]", "", feature))
 
 readSet <- function(name) {
+    # read the base data
     data <- tbl_df(read.table(file = sprintf("%s/%s/X_%s.txt", folder, name, name),
                                               col.names = features$feature))
+    # read the subjects file and add the contents to the data frame
     data_subjects = tbl_df(read.table(file = sprintf("%s/%s/subject_%s.txt", folder, name, name),
                                        col.names = c("subject")))
     data$subject <- data_subjects$subject
     
+    # read the activity IDs
     y <- tbl_df(read.table(file = sprintf("%s/%s/y_%s.txt", folder, name, name), 
                            col.names = c("activity_id")))
+    data$activity_id = y$activity_id
     
-    readable_y = tbl_df(merge(y, activity_labels, by.x = "activity_id", by.y = "value"))
-    data$activity <- readable_y$activity
+    # now add the activity labels 
+    data <- tbl_df(merge(data, activity_labels, by.x = "activity_id", by.y = "value"))
     
+    # finally select only the columns we care about, in tidy order
     select(data, subject, activity, contains(".mean."), contains(".std."))
 }
 
